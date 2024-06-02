@@ -1,0 +1,549 @@
+#!/bin/bash
+clear
+
+
+ajout_utilisateur() { 
+	
+                	read -p "Entrez Le Login:" login
+                        read -s -p "Entrez Le Mot De Passe:" password
+			echo
+                        read -p "Entrez Le Groupe De Cet Utilisateur:" group
+                          
+			if id "$login" >/dev/null 2>&1; then
+				clear
+				echo Erreur: Cet Utilisateur Existe Déjà.
+
+				echo EAU , $(date +"%T") , $login , $group , Raison : Utilisateur Existe Déjà.  >> Gestion_utilisateur.log
+                                echo ========================================== >> Gestion_utilisateur.log
+
+				echo Appuyez sur une touche pour continuer.
+				read -n 1 -s
+				clear
+				home
+			fi
+
+                        if grep "^$group:" /etc/group >/dev/null ; then
+                                               
+                                   sudo useradd -m -p $(openssl passwd -1 $password) -g $group -d /home/yassine/$login $login
+	       			   echo Utilisateur: $login , Groupe: $group . >> utilisateurs.txt
+				   echo $login $group >> suppression_groupe.txt
+				   echo AU , $(date +"%T") , $login , $group >> Gestion_utilisateur.log
+				   echo ========================================== >> Gestion_utilisateur.log
+				   clear
+				   echo Utilisateur ajouté avec succès.
+				   echo
+				   echo
+				   echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+
+
+			else
+                                   clear
+				   echo Erreur: Il n’y a pas de groupe avec le nom $group
+
+				   echo EAU , $(date +"%T") , $login , $group , Raison : Il n’y a pas de groupe avec le nom $group.  >> Gestion_utilisateur.log
+                                   echo ========================================== >> Gestion_utilisateur.log
+
+                                   echo
+				   echo
+
+				   read -p "Voulez-vous créer un groupe ? O/N" choix3
+
+				   if [ $choix3 == "o" ]; then 
+					   clear
+					   creer_groupe
+				   fi
+
+
+				   if [ $choix3 == "n" ]; then
+                                        clear
+					      home
+					   
+				   fi
+
+
+			fi 
+                     }
+ 
+
+creer_groupe() {
+
+                         read -p "Indiquez le nom du groupe à créer:" group1
+
+
+			  if grep "^$group1:" /etc/group >/dev/null ; then
+				  clear
+
+                                   echo Erreur: Ce groupe Existe Déjà.
+                                     echo EAG , $(date +"%T") , $group1 , Raison : Ce groupe Existe Déjà..  >> Gestion_utilisateur.log
+                                     echo ========================================== >> Gestion_utilisateur.log
+				   echo
+				   echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+
+                        else
+				clear
+                                   sudo groupadd $group1
+				   echo AG , $(date +"%T") , $group1 >> Gestion_utilisateur.log
+                                   echo ============================================ >> Gestion_utilisateur.log
+				   echo Le groupe est ajouté avec succès!
+				   echo 
+				   echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+                       fi
+                         
+               }
+	     
+lister_utilisateur(){
+if [ ! -s utilisateurs.txt ]; then
+                	clear
+
+	           echo Erreur: La Liste est Vide, Il n’y a pas D’Utilisateurs.
+		   echo
+		   echo
+		   echo Voulez-vous ajouter un utilisateur? O/N
+		   echo
+		   read x
+
+		   if [ $x == "o" ] ; then
+			   clear
+			  ajout_utilisateur
+		  elif [ $x == "n" ] ; then
+			  clear
+			home
+		   fi
+
+	     else
+		     clear
+	     
+	      echo "Voilà la liste des utilisateurs:"
+                     cat utilisateurs.txt
+		     echo
+		     echo
+		     echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+fi	      
+	       
+	       
+	       }
+
+
+
+supprimer_utilisateur(){
+
+                        echo Veuillez Saisir Le Login D’utilisateur à Supprimer:
+			read login_supprimer
+                              
+                                     
+
+                          if id "$login_supprimer" >/dev/null 2>&1; then
+
+                                 sudo userdel -f -r $login_supprimer
+                           clear
+                           echo L’utilisateur a été Supprimé Avec Succès.
+                           echo 
+                           echo
+                           echo DU , $(date +"%T") , $login_supprimer >> Gestion_utilisateur.log
+			   echo ============================================ >> Gestion_utilisateur.log
+                           sed -i "/$login_supprimer/d" utilisateurs.txt
+                           sed -i "/$login_supprimer/d" suppression_groupe.txt
+
+                              echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+                        else
+                                  clear
+                                  echo Erreu: Cet Utilisateur N’existe Pas.
+				  echo EDU , $(date +"%T") , $login_supprimer , Raison : Utilisateur N’existe Pas. >> Gestion_utilisateur.log
+                                  echo ============================================ >> Gestion_utilisateur.log
+                                  echo
+                                  echo Appuyez sur une touche pour continuer.
+                                  read -n 1 -s
+                                  home
+
+
+
+                        fi
+
+
+
+                      }
+
+
+supprimer_group_utilisateur(){
+
+                                    echo Merci D’indiquer Le Nom du Groupe à Supprimer.
+				    read delgroup
+			        
+			             if grep "^$delgroup:" /etc/group >/dev/null ; then
+        			        sudo groupdel -f $delgroup
+					echo DG , $(date +"%T") , $delgroup >> Gestion_utilisateur.log
+                                        echo ============================================ >> Gestion_utilisateur.log
+
+                                         while IFS='' read -r ligne ; do
+						 log=$(echo "$ligne" | awk '{print $1}')
+						 grp=$(echo "$ligne" | awk '{print $2}')
+
+                                   if [ "$grp" == "$delgroup" ]; then
+                                   sudo userdel -f -r $log
+				   echo DU , $(date +"%T") , $login_supprimer , $delgroup >> Gestion_utilisateur.log
+                                   echo ============================================ >> Gestion_utilisateur.log
+
+                                   sed -i "/$log/d" utilisateurs.txt
+                                   sed -i "/$log/d" suppression_groupe.txt
+
+
+                                    fi
+                                   done < suppression_groupe.txt
+
+                                            clear
+                                    echo Le Groupe ainsi que ses Utilisateurs sont supprimés avec succès.
+
+                                    echo
+                                    echo
+                                    echo Appuyez sur une touche pour continuer.
+                                read -n 1 -s
+                                clear
+                                home
+
+			             else
+					     clear
+			       		echo
+					echo Erreur: Ce Groupe n’existe Pas.
+					echo EDG , $(date +"%T") , $delgroup Raison : Groupe n’existe Pas. >> Gestion_utilisateur.log
+                                        echo ============================================ >> Gestion_utilisateur.log
+
+					echo
+					echo Appuyez sur une touche pour continuer.
+                                        read -n 1 -s
+					clear
+                                         home
+
+				     fi
+
+                                   
+
+
+                            }
+
+ajout_utilisateurs_csv(){
+	clear
+                                     echo Saisissez le chemin d’accès au fichier Csv qui contient les informations utilisateur.
+				     read chemin
+				    if [[ ! -e "$chemin" ]]; then
+					    clear
+					   echo Il n’y a pas de fichier avec le nom ’$chemin’  , vérifiez votre chemin.
+
+					   echo EF , $(date +"%T") , $chemin. Raison : Il n’y a pas de fichier CSV d’ajout  avec le nom ’$chemin’. >> Gestion_utilisateur.log
+                                           echo ========================================== >> Gestion_utilisateur.log
+
+					   echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+					   home
+				    fi
+
+				     clear
+				     while IFS=',' read -r log1 password1 grp1; do
+                                              
+					      if id "$log1" >/dev/null 2>&1; then
+                                                  
+                                                    echo  L’Utilisateur ’$log1’ Existe Déjà.
+
+						    echo EAU , $(date +"%T") , $log1 , $grp1 , Raison : Utilisateur Existe Déjà.  >> Gestion_utilisateur.log
+                                                    echo ========================================== >> Gestion_utilisateur.log
+
+            
+                                              fi
+    
+
+
+
+					       if grep "^$grp1:" /etc/group >/dev/null ; then
+ 
+					       sudo useradd -m -p $(openssl passwd -1 $password1) -g $grp1 -d /home/yassine/$log1  $log1
+                                               echo AU , $(date +"%T") , $log1 , $grp1 >> Gestion_utilisateur.log
+                                               echo ========================================== >> Gestion_utilisateur.log
+ 
+					   echo Utilisateur: $log1 , Groupe: $grp1 . >> utilisateurs.txt
+                                           echo $log1 $grp1 >> suppression_groupe.txt
+				   else
+					   echo Le Groupe ’$grp1’ où vous Souhaitez Ajouter l’Utilisateur ’$log1’ n’existe Pas.
+                                                       
+					          echo EAU , $(date +"%T") , $log1 , $grp1 , Raison : Il n’y a pas de groupe avec le nom $grp1.  >> Gestion_utilisateur.log
+                                                  echo ========================================== >> Gestion_utilisateur.log
+
+					       fi
+
+                                   done < $chemin
+				   echo Appuyez sur une touche pour continuer.
+                                        read -n 1 -s
+                                        clear
+                                         home
+
+
+
+                        }
+
+
+suprression_utilisateurs_csv(){
+			  
+	                clear
+                                     echo Saisissez le chemin d’accès au fichier Csv qui contient les informations Des utilisateurs à supprimer.
+                                     read chemin2
+                                      
+                                     if [[ ! -e "$chemin2" ]]; then
+                                            clear
+                                           echo Il n’y a pas de fichier avec le nom ’$chemin2’  , vérifiez votre chemin.
+
+					   echo EF , $(date +"%T") , $chemin2 , Raison : Il n’y a pas de fichier CSV de Suppression avec le nom ’$chemin2’ .  >> Gestion_utilisateur.log
+                                           echo ========================================== >> Gestion_utilisateur.log
+
+                                           echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+                                           home
+                                    fi
+
+
+                                     clear
+                                     while IFS=',' read -r log2 password2 grp2; do
+
+                                              if id "$log2" >/dev/null 2>&1; then
+						sudo userdel -f -r $log2 2>/dev/null
+
+						echo DU , $(date +"%T") , $log2 , $grp2 >> Gestion_utilisateur.log
+                                                echo ============================================ >> Gestion_utilisateur.log
+
+                                                sed -i "/$log2/d" utilisateurs.txt
+                                                sed -i "/$log2/d" suppression_groupe.txt
+                                                echo L’utilisateur ’$log2’ été supprimé avec succès.
+
+                                              
+					   else
+
+                                                  echo L’utilisateur ’$log2’ n’existe pas.
+
+                                                    echo EDU , $(date +"%T") , $log2 , $grp2 Raison : L’utilisateur ’$log2’ n’existe pas. >> Gestion_utilisateur.log
+                                                    echo ============================================ >> Gestion_utilisateur.log
+
+
+                                                 fi
+
+                                   done < $chemin2
+                                   echo Appuyez sur une touche pour continuer.
+                                        read -n 1 -s
+                                        clear
+                                         home
+
+			
+			
+			
+			}
+
+
+
+ 
+archiver_repertoire(){
+
+                        clear
+			echo Indiquer le chemin de répertoire que vous voulez archiver.
+			read cheminrep
+			if [[ ! -e "$cheminrep" ]]; then
+                                            clear
+                                           echo Il n’y a pas de répertoire avec le nom ’$cheminrep’  , vérifiez votre chemin.
+
+					   echo EA , $(date +"%T") , $cheminrep  Raison : Il n’y a pas de répertoire avec le nom ’$cheminrep’ >> Archivage.log
+                                           echo ============================================ >> Archivage.log
+
+                                           echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+                                           home
+                                    fi
+			clear
+			mv $cheminrep /home/yassine/Archive
+
+			echo AR , $(date +"%T") , $cheminrep . >> Archivage.log
+                        echo ============================================ >> Archivage.log
+
+			echo Le répertoire a été correctement archivé.
+			echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+                                           home
+
+                        
+			
+			
+		     }
+		    
+archiver_repertoires_text(){
+
+                                  clear
+                        echo Indiquer le chemin du fichier texte qui contient les chemins des répertoires.
+                        read chemintxt
+			clear
+                            if [[ ! -e "$chemintxt" ]]; then
+                                            clear
+                                           echo Il n’y a pas de fichier texte avec le nom ’$chemintxt’  , vérifiez votre chemin.
+
+                                              echo EA , $(date +"%T") , $chemintxt  Raison : Il n’y a pas de fichier txt des repertoires avec le nom ’$chemintxt’ >> Archivage.log
+                                              echo ============================================ >> Archivage.log
+
+
+                                           echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+                                           home
+                                    fi
+
+
+			 while IFS=',' read -r chem; do
+
+                                      if [[ ! -e "$chem" ]]; then
+
+					      echo Il n’y a pas de répertoire avec le nom ’$chem’  , vérifiez votre chemin.
+
+					      echo EA , $(date +"%T") , $chem  Raison : Il n’y a pas de répertoire avec le nom ’$chem’ >> Archivage.log
+                                              echo ============================================ >> Archivage.log
+
+				      else
+
+                                         mv $chem /home/yassine/Archive
+
+					 echo Le répertoire ’$chem’ a été correctement archivé.
+
+					 echo AR , $(date +"%T") , $chem . >> Archivage.log
+                                         echo ============================================ >> Archivage.log
+				      fi
+
+                                   done < $chemintxt
+
+                        echo Appuyez sur une touche pour continuer.
+                                           read -n 1 -s
+					   clear
+                                           home
+
+			   }
+
+
+
+home(){
+
+echo Bienvenue !
+echo
+echo 1.Pour Entrer La Gestion Des Utilaisateurs ET Des Groupes
+echo 2.Pour Entrer La Gestion Des Archives
+echo
+read choix
+
+if [ $choix == 1 ]; then
+	clear
+
+	echo
+	echo Bienvenue a La Gestion Des Utilisateurs ET Des Groupes
+	echo
+	echo 1.Pour Ajouter Un Utilisateur
+	echo 2.Pour Ajouter Des Utilisateurs a partir un fichier CSV.
+	echo 3.Pour Creer Un group
+	echo 4.Lister Les Utilisateurs Et Les Groupes
+        echo 5.Supprimer Un Utilisateur
+        echo 6.Supprimer Un Groupe Et Ses Utilisateurs
+        echo 7.Supprimer Des Utilisateurs a Partir un fichier CSV
+	read choix1
+
+        case $choix1 in
+		1)
+			clear
+                        ajout_utilisateur
+
+
+			;;
+		2)
+                           ajout_utilisateurs_csv
+
+			;;
+			
+		3)
+                       creer_groupe
+
+			;;
+                4)
+                         lister_utilisateur
+                                 
+			;;
+		5)
+		       supprimer_utilisateur	
+
+			;;
+
+		6)  
+			supprimer_group_utilisateur
+
+
+			;;
+			
+	        7)
+			suprression_utilisateurs_csv
+
+                        ;;
+
+	        0)
+                      exit
+                        ;;
+
+
+		esac
+
+
+
+
+
+elif [ $choix == 2 ]; then
+	clear
+	echo
+	echo Bienvenue a La Gestion Des Archives
+	echo
+	echo 1.Pour Archiver Un Repertoire.
+	echo 2.Pour Archiver Plusieurs répertoires à partir un fichier texte.
+	echo 
+        read choix2
+ 
+        case $choix2 in
+                1)
+			archiver_repertoire
+
+
+                        ;;
+                2)
+
+                           archiver_repertoires_text                        
+                        ;;
+
+	        0)
+exit
+                        ;;
+
+	esac
+
+
+
+elif [ "$choix" == "x" ]; then
+        exit
+fi
+
+
+
+}
+
+home
