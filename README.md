@@ -97,6 +97,6 @@ All actions are logged with timestamps in `Gestion_utilisateur.log` and `Archiva
 
 This Bash script project offers an efficient and automated solution for managing user accounts and directories in Unix systems, significantly improving the system administrator's workflow and reducing the potential for human error. The detailed logging ensures transparency and ease of troubleshooting.
 
-## License⭐
+## License🧾
 
 This project is licensed under the MIT License.
