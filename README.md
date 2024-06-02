@@ -1,10 +1,10 @@
-# User Management Bash Script
+# User Management Bash Script 👨🏻‍💼✨
 
-## Introduction
+## Introduction⭐
 
 This project, developed during the 2022-2023 academic year, aims to simplify and automate the management of user accounts in a Unix system using Bash scripts. By leveraging the power and simplicity of Bash, the scripts enable efficient user and group management, including the creation, deletion, and listing of users and groups, as well as the archiving of directories. The primary goal is to enhance the system administrator's experience by automating repetitive tasks and ensuring seamless user management.
 
-## Features
+## Features⭐
 
 1. **User Management**
     - **Add User**: Create new user accounts with specified login, password, and group.
@@ -21,7 +21,7 @@ This project, developed during the 2022-2023 academic year, aims to simplify and
 4. **Logging**
     - Comprehensive logging of all actions performed, including timestamps and reasons for any errors encountered.
 
-## Script Breakdown
+## Script Breakdown⭐
 
 ### `ajout_utilisateur()`
 
@@ -63,7 +63,7 @@ Reads directory paths from a text file and archives them, logging each action.
 
 The main menu function, providing options for user and group management, as well as directory archiving.
 
-## Usage
+## Usage⭐
 
 1. **Run the Script**: Execute the script using a terminal.
     
@@ -89,10 +89,14 @@ The main menu function, providing options for user and group management, as well
 1. **Archive Directory**: Provide the path to the directory to be archived.
 2. **Bulk Archive Directories from Text File**: Provide the path to a text file containing directory paths to be archived.
 
-## Logging
+## Logging⭐
 
 All actions are logged with timestamps in `Gestion_utilisateur.log` and `Archivage.log`, providing a detailed record of operations performed and any errors encountered.
 
-## Conclusion
+## Conclusion⭐
 
 This Bash script project offers an efficient and automated solution for managing user accounts and directories in Unix systems, significantly improving the system administrator's workflow and reducing the potential for human error. The detailed logging ensures transparency and ease of troubleshooting.
+
+## License⭐
+
+This project is licensed under the MIT License.
